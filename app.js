@@ -4,8 +4,10 @@ const authRoutes = require('./routes/authRoutes');
 const guestRoutes = require('./routes/guestRoutes');
 const cookieParser = require('cookie-parser');
 const { requireAuth } = require('./middleware/authMiddleware');
+const dotenv = require('dotenv');
 const cors = require('cors');
 
+dotenv.config();
 const app = express();
 
 const corsOptions = {
@@ -26,7 +28,7 @@ app.use(function (req, res, next) {
 });
 
 // database connection
-const dbURI = 'mongodb+srv://johnnyboy:110608mm@cluster0.ogsju.mongodb.net/test?retryWrites=true&w=majority';
+const dbURI = process.env.DB_CONNECTION;
 mongoose
 	.connect(dbURI, { useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true })
 	.then((result) => app.listen(4000, () => console.log('Server up and running')))
