@@ -49,15 +49,17 @@ module.exports.single_guest = async (req, res) => {
 
 module.exports.fetch_twitter_data = async (req, res) => {
 	const twitterData = await webscraping(req.body.name);
+	const guests = await Guest.find();
+	let guestExists = guests.filter((guest) => guest['twitterName'] === twitterData.twitterName);
+
 	try {
-		res.status(200).json(twitterData);
+		res.status(200).json(guestExists.length === 0 ? twitterData : guestExists[0]);
 	} catch (err) {
 		res.status(400).json({ message: err });
 	}
 };
 
 module.exports.create_guest = async (req, res) => {
-	// console.log(req.body);
 	const guest = new Guest({
 		name: req.body.name,
 		twitterName: req.body.twitterName,
@@ -67,7 +69,6 @@ module.exports.create_guest = async (req, res) => {
 		votes: req.body.votes
 	});
 
-	console.log(guest);
 	try {
 		const savedGuest = await guest.save();
 		res.json(savedGuest);
@@ -115,3 +116,9 @@ const sortTrending = (data) => {
 		})
 		.slice(0, 5);
 };
+
+// const isEmpty = (value) =>
+// 	value === undefined ||
+// 	value === null ||
+// 	(typeof value === 'object' && Object.keys(value).length === 0) ||
+// 	(typeof value === 'string' && value.trim().length === 0);
