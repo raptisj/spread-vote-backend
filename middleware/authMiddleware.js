@@ -17,7 +17,8 @@ const requireAuth = (req, res, next) => {
     });
   } else {
     console.log('msg msg');
-    // res.redirect('/login');
+    // console.log('msg msg');
+    res.redirect(res.pathname);
   }
 };
 

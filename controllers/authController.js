@@ -37,7 +37,7 @@ const handleErrors = (err) => {
 
 // create json web token
 // const maxAge = 3 * 24 * 60 * 60;
-const maxAge =  60 * 60;
+const maxAge = 60 * 60;
 // the 'secret' must be private token / long
 const createToken = (id) => {
   return jwt.sign({ id }, 'secret', {
@@ -67,7 +67,7 @@ module.exports.login = async (req, res) => {
     const user = await User.login(email, password);
     const token = createToken(user._id);
 
-    res.status(200).json({  token });
+    res.status(200).json({ token });
   } catch (err) {
     const errors = handleErrors(err);
     res.status(400).json({ errors });
@@ -83,7 +83,6 @@ module.exports.logout = (req, res) => {
   }
 };
 
-
 module.exports.get_user = async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select('-password');
@@ -93,25 +92,20 @@ module.exports.get_user = async (req, res) => {
   }
 };
 
-
 module.exports.update_user = async (req, res) => {
   try {
-    await User.updateOne({_id: req.user.id} , { $push: { guests: req.body } });
+    await User.updateOne({ _id: req.user.id }, { $push: { guests: req.body } });
     res.status(200).json(req.body);
   } catch (err) {
     res.status(400).json({ message: err });
   }
 };
-
-
 
 module.exports.remove_user_guest = async (req, res) => {
   try {
-    await User.updateOne({_id: req.user.id} , { $pull: { guests: { _id: req.body._id } } });
+    await User.updateOne({ _id: req.user.id }, { $pull: { guests: { _id: req.body._id } } });
     res.status(200).json(req.body);
   } catch (err) {
     res.status(400).json({ message: err });
   }
 };
-
-

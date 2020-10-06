@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const authRoutes = require('./routes/authRoutes');
 const guestRoutes = require('./routes/guestRoutes');
+const podcastRoute = require('./routes/podcastRoute');
 const cookieParser = require('cookie-parser');
 const { requireAuth } = require('./middleware/authMiddleware');
 const dotenv = require('dotenv');
@@ -37,3 +38,4 @@ mongoose
 // routes
 app.use(authRoutes);
 app.use(guestRoutes);
+app.use(podcastRoute);
