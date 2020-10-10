@@ -5,10 +5,8 @@ const guestSchema = new mongoose.Schema({
 	twitterName: String,
 	twitterImage: String,
 	bio: String,
-	category: {
-		type: [String],
-		default: []
-	},
+	podcast_id: String,
+	podcast_name: String,
 	votes: {
 		type: [String],
 		default: []
@@ -18,3 +16,12 @@ const guestSchema = new mongoose.Schema({
 const Guest = mongoose.model('guest', guestSchema);
 
 module.exports = Guest;
+
+// podcast_id: {
+// 	type: [String],
+// 	default: []
+// },
+// podcast_name: {
+// 	type: [String],
+// 	default: []
+// },

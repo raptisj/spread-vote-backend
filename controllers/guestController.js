@@ -30,8 +30,11 @@ const handleErrors = (err) => {
 
 module.exports.all_guests = async (req, res) => {
 	let trending = req.query.trending;
+
 	try {
-		const guests = await Guest.find();
+		const allGuests = await Guest.find();
+		const guests = allGuests.filter((p) => p.podcast_id === req.params.podId);
+
 		res.json(trending ? sortTrending(guests) : guests);
 	} catch (err) {
 		res.status(400).json({ message: err });
@@ -65,7 +68,8 @@ module.exports.create_guest = async (req, res) => {
 		twitterName: req.body.twitterName,
 		twitterImage: req.body.twitterImage,
 		bio: req.body.bio,
-		category: req.body.category,
+		podcast_id: req.body.podcast_id,
+		podcast_name: req.body.podcast_name,
 		votes: req.body.votes
 	});
 
@@ -95,6 +99,7 @@ module.exports.unVote_guest = async (req, res) => {
 	try {
 		const updatedVotes = await Guest.updateOne({ _id: req.params.id }, { $pull: { votes: { $in: req.body.votes } } });
 		const guest = await Guest.findById(req.params.id);
+
 		res.status(200).json(guest);
 	} catch (err) {
 		console.log(err);

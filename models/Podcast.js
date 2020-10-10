@@ -6,7 +6,8 @@ const podcastSchema = new mongoose.Schema({
 	guests: {
 		type: [String],
 		default: []
-	}
+	},
+	votes: String
 });
 
 const Podcast = mongoose.model('podcast', podcastSchema);
