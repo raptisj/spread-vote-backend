@@ -1,6 +1,8 @@
 const Guest = require('../models/Guest');
+const Podcast = require('../models/Podcast');
 const jwt = require('jsonwebtoken');
 const webscraping = require('../utils/scraper');
+// const sortTrending = require('../utils/helperFunctions');
 
 // handle errors
 const handleErrors = (err) => {
@@ -30,12 +32,12 @@ const handleErrors = (err) => {
 
 module.exports.all_guests = async (req, res) => {
 	let trending = req.query.trending;
+	// let all = req.query.all;
 
 	try {
-		const allGuests = await Guest.find();
-		const guests = allGuests.filter((p) => p.podcast_id === req.params.podId);
+		const podcast = await Podcast.findById(req.params.podId);
 
-		res.json(trending ? sortTrending(guests) : guests);
+		res.json(trending ? sortTrending(podcast.guests) : podcast.guests);
 	} catch (err) {
 		res.status(400).json({ message: err });
 	}
@@ -43,8 +45,10 @@ module.exports.all_guests = async (req, res) => {
 
 module.exports.single_guest = async (req, res) => {
 	try {
-		const guest = await Guest.findById(req.params.id);
-		res.json(guest);
+		const singlePod = await Podcast.findById(req.params.podId);
+		const subDoc = singlePod.guests.id(req.params.id);
+
+		res.json(subDoc);
 	} catch (err) {
 		res.status(400).json({ message: err });
 	}
@@ -63,7 +67,8 @@ module.exports.fetch_twitter_data = async (req, res) => {
 };
 
 module.exports.create_guest = async (req, res) => {
-	const guest = new Guest({
+	const nPod = new Podcast();
+	const nGue = nPod.guests.create({
 		name: req.body.name,
 		twitterName: req.body.twitterName,
 		twitterImage: req.body.twitterImage,
@@ -73,9 +78,16 @@ module.exports.create_guest = async (req, res) => {
 		votes: req.body.votes
 	});
 
+	console.log(nGue.votes);
+
 	try {
-		const savedGuest = await guest.save();
-		res.json(savedGuest);
+		const updatedPodcast = await Podcast.updateOne(
+			{ _id: req.body.podcast_id },
+			{ $push: { guests: nGue }, $inc: { votes: 1 } }
+		);
+		const singlePod = await Podcast.findById(req.body.podcast_id);
+
+		res.json(singlePod);
 	} catch (err) {
 		res.status(400).json({ message: err });
 	}
@@ -84,10 +96,20 @@ module.exports.create_guest = async (req, res) => {
 // votes is an array of user ids.
 module.exports.upVote_guest = async (req, res) => {
 	try {
-		const updatedVotes = await Guest.updateOne({ _id: req.params.id }, { $push: { votes: req.body.votes } });
-		const guest = await Guest.findById(req.params.id);
+		// const updatedVotes = await Guest.updateOne({ _id: req.params.id }, { $push: { votes: req.body.votes } });
+		// const guest = await Guest.findById(req.params.id);
+		// const updatedPodcast = await Podcast.updateOne({ _id: req.body.podcastId }, { $set: { guests: guest } });
+		// const updatedPodcastVotes = await Podcast.updateOne({ _id: req.body.podcast_id }, { $inc: { votes: 1 } });
 
-		res.status(200).json(guest);
+		const updatedPodcast = await Podcast.updateOne(
+			{ _id: req.body.podcastId, 'guests._id': req.params.id },
+			{ $push: { 'guests.$.votes': req.body.votes }, $inc: { votes: 1 } }
+		);
+
+		const podcast = await Podcast.findById(req.body.podcastId);
+		console.log(podcast.votes, 'up');
+
+		res.status(200).json(podcast);
 	} catch (err) {
 		console.log(err);
 		const errors = handleErrors(err);
@@ -97,10 +119,25 @@ module.exports.upVote_guest = async (req, res) => {
 
 module.exports.unVote_guest = async (req, res) => {
 	try {
-		const updatedVotes = await Guest.updateOne({ _id: req.params.id }, { $pull: { votes: { $in: req.body.votes } } });
-		const guest = await Guest.findById(req.params.id);
+		// const updatedVotes = await Guest.updateOne({ _id: req.params.id }, { $pull: { votes: { $in: req.body.votes } } });
+		// const guest = await Guest.findById(req.params.id);
+		// const updatedPodcast = await Podcast.updateOne({ _id: req.body.podcastId }, { $set: { guests: guest } });
+		// const updatedPodcastVotes = await Podcast.updateOne({ _id: req.body.podcast_id }, { $inc: { votes: -1 } });
 
-		res.status(200).json(guest);
+		// const podcast = await Podcast.find();
+
+		// const nPod = await Podcast.findById(req.body.podcastId);
+		// const subDoc = nPod.guests.id(req.params.id);
+		// console.log(subDoc);
+
+		const updatedPodcast = await Podcast.updateOne(
+			{ _id: req.body.podcastId, 'guests._id': req.params.id },
+			{ $pull: { 'guests.$.votes': { $in: req.body.votes } }, $inc: { votes: -1 } }
+		);
+		const podcast = await Podcast.findById(req.body.podcastId);
+		console.log(podcast.votes);
+
+		res.status(200).json(podcast);
 	} catch (err) {
 		console.log(err);
 		const errors = handleErrors(err);
@@ -121,9 +158,3 @@ const sortTrending = (data) => {
 		})
 		.slice(0, 5);
 };
-
-// const isEmpty = (value) =>
-// 	value === undefined ||
-// 	value === null ||
-// 	(typeof value === 'object' && Object.keys(value).length === 0) ||
-// 	(typeof value === 'string' && value.trim().length === 0);

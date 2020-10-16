@@ -17,11 +17,8 @@ const Guest = mongoose.model('guest', guestSchema);
 
 module.exports = Guest;
 
-// podcast_id: {
-// 	type: [String],
-// 	default: []
-// },
-// podcast_name: {
-// 	type: [String],
-// 	default: []
-// },
+// many podcasts
+// each podacast can have many guests
+// same guest can be in many podcasts
+//
+//
