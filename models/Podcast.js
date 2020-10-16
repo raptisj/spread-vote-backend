@@ -3,8 +3,8 @@ const mongoose = require('mongoose');
 // guests schema here
 const guestSchema = new mongoose.Schema({
 	name: String,
-	twitterName: String,
-	twitterImage: String,
+	twitter_name: String,
+	twitter_image: String,
 	bio: String,
 	podcast_id: String,
 	podcast_name: String,
@@ -21,7 +21,8 @@ const podcastSchema = new mongoose.Schema({
 		type: [guestSchema],
 		default: []
 	},
-	votes: Number
+	votes: Number,
+	category: String
 });
 
 const Podcast = mongoose.model('podcast', podcastSchema);

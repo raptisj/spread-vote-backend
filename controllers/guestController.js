@@ -32,7 +32,6 @@ const handleErrors = (err) => {
 
 module.exports.all_guests = async (req, res) => {
 	let trending = req.query.trending;
-	// let all = req.query.all;
 
 	try {
 		const podcast = await Podcast.findById(req.params.podId);
@@ -45,10 +44,10 @@ module.exports.all_guests = async (req, res) => {
 
 module.exports.single_guest = async (req, res) => {
 	try {
-		const singlePod = await Podcast.findById(req.params.podId);
-		const subDoc = singlePod.guests.id(req.params.id);
+		const podcast = await Podcast.findById(req.params.podId);
+		const singleGuest = podcast.guests.id(req.params.id);
 
-		res.json(subDoc);
+		res.json(singleGuest);
 	} catch (err) {
 		res.status(400).json({ message: err });
 	}
@@ -56,8 +55,12 @@ module.exports.single_guest = async (req, res) => {
 
 module.exports.fetch_twitter_data = async (req, res) => {
 	const twitterData = await webscraping(req.body.name);
-	const guests = await Guest.find();
-	let guestExists = guests.filter((guest) => guest['twitterName'] === twitterData.twitterName);
+	// const guests = await Guest.find();
+
+	// let guestExists = guests.filter((guest) => guest['twitterName'] === twitterData.twitterName);
+
+	const podcast = await Podcast.findById(req.params.podId);
+	let guestExists = podcast.guests.filter((guest) => guest['twitter_name'] === twitterData.twitter_name);
 
 	try {
 		res.status(200).json(guestExists.length === 0 ? twitterData : guestExists[0]);
@@ -67,27 +70,27 @@ module.exports.fetch_twitter_data = async (req, res) => {
 };
 
 module.exports.create_guest = async (req, res) => {
-	const nPod = new Podcast();
-	const nGue = nPod.guests.create({
+	const podcast = new Podcast();
+	const podcastGuests = podcast.guests.create({
 		name: req.body.name,
-		twitterName: req.body.twitterName,
-		twitterImage: req.body.twitterImage,
+		twitter_name: req.body.twitter_name,
+		twitter_image: req.body.twitter_image,
 		bio: req.body.bio,
 		podcast_id: req.body.podcast_id,
 		podcast_name: req.body.podcast_name,
 		votes: req.body.votes
 	});
 
-	console.log(nGue.votes);
+	// console.log( set: podcastGuests.votes.length);
 
 	try {
-		const updatedPodcast = await Podcast.updateOne(
+		const createdPodcast = await Podcast.updateOne(
 			{ _id: req.body.podcast_id },
-			{ $push: { guests: nGue }, $inc: { votes: 1 } }
+			{ $push: { guests: podcastGuests }, $set: { votes: podcastGuests.votes.length } }
 		);
-		const singlePod = await Podcast.findById(req.body.podcast_id);
+		const singlePodcast = await Podcast.findById(req.body.podcast_id);
 
-		res.json(singlePod);
+		res.json(singlePodcast);
 	} catch (err) {
 		res.status(400).json({ message: err });
 	}
@@ -98,7 +101,7 @@ module.exports.upVote_guest = async (req, res) => {
 	try {
 		// const updatedVotes = await Guest.updateOne({ _id: req.params.id }, { $push: { votes: req.body.votes } });
 		// const guest = await Guest.findById(req.params.id);
-		// const updatedPodcast = await Podcast.updateOne({ _id: req.body.podcastId }, { $set: { guests: guest } });
+		// const createdPodcast = await Podcast.updateOne({ _id: req.body.podcastId }, { $set: { guests: guest } });
 		// const updatedPodcastVotes = await Podcast.updateOne({ _id: req.body.podcast_id }, { $inc: { votes: 1 } });
 
 		const updatedPodcast = await Podcast.updateOne(
@@ -107,7 +110,7 @@ module.exports.upVote_guest = async (req, res) => {
 		);
 
 		const podcast = await Podcast.findById(req.body.podcastId);
-		console.log(podcast.votes, 'up');
+		// console.log(podcast.votes, 'up');
 
 		res.status(200).json(podcast);
 	} catch (err) {
@@ -138,6 +141,22 @@ module.exports.unVote_guest = async (req, res) => {
 		console.log(podcast.votes);
 
 		res.status(200).json(podcast);
+	} catch (err) {
+		console.log(err);
+		const errors = handleErrors(err);
+		res.status(400).json({ errors });
+	}
+};
+
+module.exports.vote_category = async (req, res) => {
+	console.log(req.params.podId);
+	try {
+		// const updatedPodcast = await Podcast.updateOne(
+		// 	{ _id: req.body.podcastId, 'guests._id': req.params.id },
+		// 	{ $push: { 'guests.$.votes': req.body.votes }, $inc: { votes: 1 } }
+		// );
+		// const podcast = await Podcast.findById(req.body.podcastId);
+		// res.status(200).json(podcast);
 	} catch (err) {
 		console.log(err);
 		const errors = handleErrors(err);

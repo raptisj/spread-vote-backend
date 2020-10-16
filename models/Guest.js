@@ -2,8 +2,8 @@ const mongoose = require('mongoose');
 
 const guestSchema = new mongoose.Schema({
 	name: String,
-	twitterName: String,
-	twitterImage: String,
+	twitter_name: String,
+	twitter_image: String,
 	bio: String,
 	podcast_id: String,
 	podcast_name: String,
