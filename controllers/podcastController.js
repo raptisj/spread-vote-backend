@@ -24,7 +24,7 @@ module.exports.create_podcast = async (req, res) => {
 		name: req.body.name,
 		about: req.body.about,
 		guests: req.body.guests,
-		votes: req.body.votes
+		category: req.body.category
 	});
 
 	try {

@@ -2,7 +2,7 @@ const Guest = require('../models/Guest');
 const Podcast = require('../models/Podcast');
 const jwt = require('jsonwebtoken');
 const webscraping = require('../utils/scraper');
-// const sortTrending = require('../utils/helperFunctions');
+const { sortTrending } = require('../utils/helperFunctions');
 
 // handle errors
 const handleErrors = (err) => {
@@ -81,8 +81,6 @@ module.exports.create_guest = async (req, res) => {
 		votes: req.body.votes
 	});
 
-	// console.log( set: podcastGuests.votes.length);
-
 	try {
 		const createdPodcast = await Podcast.updateOne(
 			{ _id: req.body.podcast_id },
@@ -96,7 +94,6 @@ module.exports.create_guest = async (req, res) => {
 	}
 };
 
-// votes is an array of user ids.
 module.exports.upVote_guest = async (req, res) => {
 	try {
 		// const updatedVotes = await Guest.updateOne({ _id: req.params.id }, { $push: { votes: req.body.votes } });
@@ -106,11 +103,10 @@ module.exports.upVote_guest = async (req, res) => {
 
 		const updatedPodcast = await Podcast.updateOne(
 			{ _id: req.body.podcastId, 'guests._id': req.params.id },
-			{ $push: { 'guests.$.votes': req.body.votes }, $inc: { votes: 1 } }
+			{ $push: { 'guests.$.votes': req.body.votes } }
 		);
-
+		console.log(req.body.votes);
 		const podcast = await Podcast.findById(req.body.podcastId);
-		// console.log(podcast.votes, 'up');
 
 		res.status(200).json(podcast);
 	} catch (err) {
@@ -135,10 +131,11 @@ module.exports.unVote_guest = async (req, res) => {
 
 		const updatedPodcast = await Podcast.updateOne(
 			{ _id: req.body.podcastId, 'guests._id': req.params.id },
-			{ $pull: { 'guests.$.votes': { $in: req.body.votes } }, $inc: { votes: -1 } }
+			{ $pull: { 'guests.$.votes': { $in: req.body.votes } } }
 		);
+
 		const podcast = await Podcast.findById(req.body.podcastId);
-		console.log(podcast.votes);
+		console.log(req.body.votes);
 
 		res.status(200).json(podcast);
 	} catch (err) {
@@ -149,14 +146,14 @@ module.exports.unVote_guest = async (req, res) => {
 };
 
 module.exports.vote_category = async (req, res) => {
-	console.log(req.params.podId);
 	try {
-		// const updatedPodcast = await Podcast.updateOne(
-		// 	{ _id: req.body.podcastId, 'guests._id': req.params.id },
-		// 	{ $push: { 'guests.$.votes': req.body.votes }, $inc: { votes: 1 } }
-		// );
-		// const podcast = await Podcast.findById(req.body.podcastId);
-		// res.status(200).json(podcast);
+		await Podcast.updateOne(
+			{ _id: req.params.podId, 'category.id': req.body.currentCategory },
+			{ $inc: { 'category.$.value': 1 } }
+		);
+
+		const podcast = await Podcast.findById(req.body.podcastId);
+		res.status(200).json(podcast);
 	} catch (err) {
 		console.log(err);
 		const errors = handleErrors(err);
@@ -164,16 +161,16 @@ module.exports.vote_category = async (req, res) => {
 	}
 };
 
-const sortTrending = (data) => {
-	return data
-		.sort(function (a, b) {
-			if (a.votes.length < b.votes.length) {
-				return 1;
-			}
-			if (a.votes.length > b.votes.length) {
-				return -1;
-			}
-			return 0;
-		})
-		.slice(0, 5);
-};
+// const sortTrending = (data) => {
+// 	return data
+// 		.sort(function (a, b) {
+// 			if (a.votes.length < b.votes.length) {
+// 				return 1;
+// 			}
+// 			if (a.votes.length > b.votes.length) {
+// 				return -1;
+// 			}
+// 			return 0;
+// 		})
+// 		.slice(0, 5);
+// };
