@@ -23,6 +23,10 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: [true, 'Please enter last name']
   },
+  category: {
+    type: String,
+    default: null
+  },
   guests: {
     type: [Object],
     default: []

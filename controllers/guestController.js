@@ -1,5 +1,6 @@
 const Guest = require('../models/Guest');
 const Podcast = require('../models/Podcast');
+const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const webscraping = require('../utils/scraper');
 const { sortTrending } = require('../utils/helperFunctions');
@@ -55,9 +56,8 @@ module.exports.single_guest = async (req, res) => {
 
 module.exports.fetch_twitter_data = async (req, res) => {
 	const twitterData = await webscraping(req.body.name);
-	// const guests = await Guest.find();
 
-	// let guestExists = guests.filter((guest) => guest['twitterName'] === twitterData.twitterName);
+	console.log(twitterData);
 
 	const podcast = await Podcast.findById(req.params.podId);
 	let guestExists = podcast.guests.filter((guest) => guest['twitter_name'] === twitterData.twitter_name);
@@ -96,11 +96,6 @@ module.exports.create_guest = async (req, res) => {
 
 module.exports.upVote_guest = async (req, res) => {
 	try {
-		// const updatedVotes = await Guest.updateOne({ _id: req.params.id }, { $push: { votes: req.body.votes } });
-		// const guest = await Guest.findById(req.params.id);
-		// const createdPodcast = await Podcast.updateOne({ _id: req.body.podcastId }, { $set: { guests: guest } });
-		// const updatedPodcastVotes = await Podcast.updateOne({ _id: req.body.podcast_id }, { $inc: { votes: 1 } });
-
 		const updatedPodcast = await Podcast.updateOne(
 			{ _id: req.body.podcastId, 'guests._id': req.params.id },
 			{ $push: { 'guests.$.votes': req.body.votes } }
@@ -118,17 +113,6 @@ module.exports.upVote_guest = async (req, res) => {
 
 module.exports.unVote_guest = async (req, res) => {
 	try {
-		// const updatedVotes = await Guest.updateOne({ _id: req.params.id }, { $pull: { votes: { $in: req.body.votes } } });
-		// const guest = await Guest.findById(req.params.id);
-		// const updatedPodcast = await Podcast.updateOne({ _id: req.body.podcastId }, { $set: { guests: guest } });
-		// const updatedPodcastVotes = await Podcast.updateOne({ _id: req.body.podcast_id }, { $inc: { votes: -1 } });
-
-		// const podcast = await Podcast.find();
-
-		// const nPod = await Podcast.findById(req.body.podcastId);
-		// const subDoc = nPod.guests.id(req.params.id);
-		// console.log(subDoc);
-
 		const updatedPodcast = await Podcast.updateOne(
 			{ _id: req.body.podcastId, 'guests._id': req.params.id },
 			{ $pull: { 'guests.$.votes': { $in: req.body.votes } } }
@@ -147,13 +131,49 @@ module.exports.unVote_guest = async (req, res) => {
 
 module.exports.vote_category = async (req, res) => {
 	try {
-		await Podcast.updateOne(
-			{ _id: req.params.podId, 'category.id': req.body.currentCategory },
-			{ $inc: { 'category.$.value': 1 } }
-		);
+		// await Podcast.updateOne(
+		// 	{ _id: req.params.podId, 'category.users': req.body.userId },
+		// 	{ $pull: { 'category.$.users': { $in: [req.body.userId] } } }
+		// );
 
-		const podcast = await Podcast.findById(req.body.podcastId);
-		res.status(200).json(podcast);
+		// await Podcast.updateOne(
+		// 	{ _id: req.params.podId, 'category.id': req.body.currentCategory },
+		// 	{ $push: { 'category.$.users': req.body.userId } }
+		// );
+
+		const podcastWithUser = await Podcast.findById(req.params.podId);
+		// const upd = podcastWithUser.category.filter(
+		// 	(p) => p.users.includes(req.body.userId) && p.id === req.body.currentCategory
+		// );
+		// console.log(upd);
+
+		const findId = (data, id) => {
+			const index = data.indexOf(id);
+			if (index > -1) {
+				data.splice(index, 1);
+				return data;
+			}
+		};
+
+		const po = podcastWithUser.category.map((p) => ({
+			...p,
+			users:
+				p.users.includes(req.body.userId) && p.id !== req.body.currentCategory
+					? findId(p.users, req.body.userId)
+					: !p.users.includes(req.body.userId)
+					? [...p.users]
+					: [...p.users, 2]
+		}));
+		console.log(po, '1');
+		// users: p.users.includes(req.body.userId) && p.id !== req.body.currentCategory ? [] : [...users] }
+		// const updatedCategories = po.map((p) => ({ ...p, value: p.users.length }));
+		// console.log(updatedCategories, '2');
+
+		// await Podcast.updateOne({ _id: req.params.podId }, { $set: { category: updatedCategories } });
+		// await User.updateOne({ _id: req.body.userId }, { $set: { category: req.body.currentCategory } });
+
+		// const podcast = await Podcast.findById(req.params.podId);
+		// res.status(200).json(podcast);
 	} catch (err) {
 		console.log(err);
 		const errors = handleErrors(err);
