@@ -9,16 +9,13 @@ const requireAuth = (req, res, next) => {
     jwt.verify(token, 'secret', (err, decodedToken) => {
       if (err) {
         console.log(err.message, 'msg');
+
         res.status(401).send('Access Denied');
       } else {
         req.user = decodedToken;
         next();
       }
     });
-  } else {
-    console.log('msg msg');
-    // console.log('msg msg');
-    res.redirect(res.pathname);
   }
 };
 

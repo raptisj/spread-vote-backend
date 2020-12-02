@@ -55,8 +55,6 @@ const webscraping = async (pageURL) => {
     return data;
   }
 
-  console.log(twitter_name);
-
   const data = {
     twitter_image,
     name,

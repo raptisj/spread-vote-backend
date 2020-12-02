@@ -57,8 +57,6 @@ module.exports.single_guest = async (req, res) => {
 module.exports.fetch_twitter_data = async (req, res) => {
 	const twitterData = await webscraping(req.body.name);
 
-	console.log(twitterData);
-
 	const podcast = await Podcast.findById(req.params.podId);
 	let guestExists = podcast.guests.filter((guest) => guest['twitter_name'] === twitterData.twitter_name);
 
@@ -94,6 +92,39 @@ module.exports.create_guest = async (req, res) => {
 	}
 };
 
+module.exports.fetch_update_twitter_data = async (req, res) => {
+	const twitterData = await webscraping(req.body.name);
+
+	// console.log(twitterData);
+
+	const podcast = await Podcast.findById(req.params.podId);
+	const getGuest = podcast.guests.filter((guest) => guest['twitter_name'] === twitterData.twitter_name);
+
+	const updatedGuest = {
+		name: getGuest[0].name,
+		twitter_name: getGuest[0].twitter_name,
+		_id: getGuest[0]._id,
+		twitter_image: twitterData.twitter_image,
+		bio: twitterData.bio,
+		podcast_id: getGuest[0].podcast_id,
+		podcast_name: getGuest[0].podcast_name,
+		votes: getGuest[0].votes
+	};
+
+	try {
+		const updatedPodcast = await Podcast.updateOne(
+			{ _id: req.params.podId, 'guests._id': getGuest[0]._id },
+			{ $set: { 'guests.$': updatedGuest } }
+		);
+
+		const singlePodcast = await Podcast.findById(req.params.podId);
+
+		res.json(singlePodcast);
+	} catch (err) {
+		res.status(400).json({ message: err });
+	}
+};
+
 module.exports.upVote_guest = async (req, res) => {
 	try {
 		const updatedPodcast = await Podcast.updateOne(
@@ -108,6 +139,7 @@ module.exports.upVote_guest = async (req, res) => {
 		console.log(err);
 		const errors = handleErrors(err);
 		res.status(400).json({ errors });
+		res.redirect('auth/login');
 	}
 };
 
