@@ -7,7 +7,7 @@ const webscraping = async (pageURL) => {
     ignoreHTTPSErrors: true
   });
   const page = await browser.newPage();
-  await page.setDefaultTimeout(10000);
+  await page.setDefaultTimeout(15000);
 
   console.log(`Navigating to ${`https://twitter.com/${pageURL}/photo`}...`);
   await page.goto(`https://twitter.com/${pageURL}/photo`);

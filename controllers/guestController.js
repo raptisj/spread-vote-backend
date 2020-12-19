@@ -33,10 +33,13 @@ const handleErrors = (err) => {
 
 module.exports.all_guests = async (req, res) => {
 	let trending = req.query.trending;
-
 	try {
 		const podcast = await Podcast.findById(req.params.podId);
 
+		const guests = await Guest.find();
+		const podcastGuest = guests.filter((guest) => guest.podcast_id.includes(req.params.podId));
+
+		console.log(podcastGuest);
 		res.json(trending ? sortTrending(podcast.guests) : podcast.guests);
 	} catch (err) {
 		res.status(400).json({ message: err });
@@ -68,25 +71,83 @@ module.exports.fetch_twitter_data = async (req, res) => {
 };
 
 module.exports.create_guest = async (req, res) => {
-	const podcast = new Podcast();
-	const podcastGuests = podcast.guests.create({
-		name: req.body.name,
-		twitter_name: req.body.twitter_name,
-		twitter_image: req.body.twitter_image,
-		bio: req.body.bio,
-		podcast_id: req.body.podcast_id,
-		podcast_name: req.body.podcast_name,
-		votes: req.body.votes
-	});
+	// const podcast = new Podcast();
+	// const podcastGuests = podcast.guests.create({
+	// 	name: req.body.name,
+	// 	twitter_name: req.body.twitter_name,
+	// 	twitter_image: req.body.twitter_image,
+	// 	bio: req.body.bio,
+	// 	podcast_id: req.body.podcast_id,
+	// 	podcast_name: req.body.podcast_name,
+	// 	votes: req.body.votes
+	// });
+
+	const guests = await Guest.find();
+	const existingGuest = guests.filter((p) => p.twitter_name === req.body.twitter_name);
+	// console.log({ ...existingGuest[0] });
+	let newGuest;
+
+	if (existingGuest.length === 0) {
+		newGuest = new Guest({
+			name: req.body.name,
+			twitter_name: req.body.twitter_name,
+			twitter_image: req.body.twitter_image,
+			bio: req.body.bio,
+			podcast_id: req.body.podcast_id,
+			votes: req.body.votes
+		});
+	}
+
+	if (existingGuest.length && !existingGuest[0].podcast_id.includes(req.body.podcast_id)) {
+		newGuest = {
+			votes: existingGuest[0].votes,
+			_id: existingGuest[0]._id,
+			name: existingGuest[0].name,
+			twitter_name: existingGuest[0].twitter_name,
+			twitter_image: existingGuest[0].twitter_image,
+			bio: existingGuest[0].bio,
+			podcast_id: [...existingGuest[0].podcast_id, req.body.podcast_id]
+		};
+	}
+
+	// else {
+	// 	throw new Error('BROKEN');
+	// }
+
+	// if (existingGuest.length) {
+	// 	newGuest = {
+	// 		...existingGuest
+	// 		podcast_id: [...existingGuest.podcast_id, req.body.podcast_id,]
+	// 	};
+	// } else {
+	// 	newGuest = new Guest({
+	// 		name: req.body.name,
+	// 		twitter_name: req.body.twitter_name,
+	// 		twitter_image: req.body.twitter_image,
+	// 		bio: req.body.bio,
+	// 		podcast_id: req.body.podcast_id,
+	// 		votes: req.body.votes
+	// 	});
+	// }
+	// console.log(newGuest);
+	// console.log(req.body);
 
 	try {
-		const createdPodcast = await Podcast.updateOne(
-			{ _id: req.body.podcast_id },
-			{ $push: { guests: podcastGuests }, $set: { votes: podcastGuests.votes.length } }
-		);
-		const singlePodcast = await Podcast.findById(req.body.podcast_id);
+		if (existingGuest.length === 0) {
+			await newGuest.save();
+		} else {
+			const createdPodcast = await Guest.updateOne({ _id: existingGuest[0]._id }, { $set: newGuest });
+		}
+		// if (!!existingGuest) {
+		// } else {
+		// }
+		// const createdPodcast = await Podcast.updateOne(
+		// 	{ _id: req.body.podcast_id },
+		// 	{ $push: { guests: podcastGuests }, $set: { votes: podcastGuests.votes.length } }
+		// );
 
-		res.json(singlePodcast);
+		// const singlePodcast = await Podcast.findById(req.body.podcast_id);
+		res.json(newGuest);
 	} catch (err) {
 		res.status(400).json({ message: err });
 	}
@@ -131,7 +192,7 @@ module.exports.upVote_guest = async (req, res) => {
 			{ _id: req.body.podcastId, 'guests._id': req.params.id },
 			{ $push: { 'guests.$.votes': req.body.votes } }
 		);
-		console.log(req.body.votes);
+		// console.log(req.body.votes);
 		const podcast = await Podcast.findById(req.body.podcastId);
 
 		res.status(200).json(podcast);
@@ -151,7 +212,7 @@ module.exports.unVote_guest = async (req, res) => {
 		);
 
 		const podcast = await Podcast.findById(req.body.podcastId);
-		console.log(req.body.votes);
+		// console.log(req.body.votes);
 
 		res.status(200).json(podcast);
 	} catch (err) {
@@ -161,57 +222,57 @@ module.exports.unVote_guest = async (req, res) => {
 	}
 };
 
-module.exports.vote_category = async (req, res) => {
-	try {
-		// await Podcast.updateOne(
-		// 	{ _id: req.params.podId, 'category.users': req.body.userId },
-		// 	{ $pull: { 'category.$.users': { $in: [req.body.userId] } } }
-		// );
+// module.exports.vote_category = async (req, res) => {
+// 	try {
+// 		// await Podcast.updateOne(
+// 		// 	{ _id: req.params.podId, 'category.users': req.body.userId },
+// 		// 	{ $pull: { 'category.$.users': { $in: [req.body.userId] } } }
+// 		// );
 
-		// await Podcast.updateOne(
-		// 	{ _id: req.params.podId, 'category.id': req.body.currentCategory },
-		// 	{ $push: { 'category.$.users': req.body.userId } }
-		// );
+// 		// await Podcast.updateOne(
+// 		// 	{ _id: req.params.podId, 'category.id': req.body.currentCategory },
+// 		// 	{ $push: { 'category.$.users': req.body.userId } }
+// 		// );
 
-		const podcastWithUser = await Podcast.findById(req.params.podId);
-		// const upd = podcastWithUser.category.filter(
-		// 	(p) => p.users.includes(req.body.userId) && p.id === req.body.currentCategory
-		// );
-		// console.log(upd);
+// 		const podcastWithUser = await Podcast.findById(req.params.podId);
+// 		// const upd = podcastWithUser.category.filter(
+// 		// 	(p) => p.users.includes(req.body.userId) && p.id === req.body.currentCategory
+// 		// );
+// 		// console.log(upd);
 
-		const findId = (data, id) => {
-			const index = data.indexOf(id);
-			if (index > -1) {
-				data.splice(index, 1);
-				return data;
-			}
-		};
+// 		const findId = (data, id) => {
+// 			const index = data.indexOf(id);
+// 			if (index > -1) {
+// 				data.splice(index, 1);
+// 				return data;
+// 			}
+// 		};
 
-		const po = podcastWithUser.category.map((p) => ({
-			...p,
-			users:
-				p.users.includes(req.body.userId) && p.id !== req.body.currentCategory
-					? findId(p.users, req.body.userId)
-					: !p.users.includes(req.body.userId)
-					? [...p.users]
-					: [...p.users, 2]
-		}));
-		console.log(po, '1');
-		// users: p.users.includes(req.body.userId) && p.id !== req.body.currentCategory ? [] : [...users] }
-		// const updatedCategories = po.map((p) => ({ ...p, value: p.users.length }));
-		// console.log(updatedCategories, '2');
+// 		const po = podcastWithUser.category.map((p) => ({
+// 			...p,
+// 			users:
+// 				p.users.includes(req.body.userId) && p.id !== req.body.currentCategory
+// 					? findId(p.users, req.body.userId)
+// 					: !p.users.includes(req.body.userId)
+// 					? [...p.users]
+// 					: [...p.users, 2]
+// 		}));
+// 		console.log(po, '1');
+// 		// users: p.users.includes(req.body.userId) && p.id !== req.body.currentCategory ? [] : [...users] }
+// 		// const updatedCategories = po.map((p) => ({ ...p, value: p.users.length }));
+// 		// console.log(updatedCategories, '2');
 
-		// await Podcast.updateOne({ _id: req.params.podId }, { $set: { category: updatedCategories } });
-		// await User.updateOne({ _id: req.body.userId }, { $set: { category: req.body.currentCategory } });
+// 		// await Podcast.updateOne({ _id: req.params.podId }, { $set: { category: updatedCategories } });
+// 		// await User.updateOne({ _id: req.body.userId }, { $set: { category: req.body.currentCategory } });
 
-		// const podcast = await Podcast.findById(req.params.podId);
-		// res.status(200).json(podcast);
-	} catch (err) {
-		console.log(err);
-		const errors = handleErrors(err);
-		res.status(400).json({ errors });
-	}
-};
+// 		// const podcast = await Podcast.findById(req.params.podId);
+// 		// res.status(200).json(podcast);
+// 	} catch (err) {
+// 		console.log(err);
+// 		const errors = handleErrors(err);
+// 		res.status(400).json({ errors });
+// 	}
+// };
 
 // const sortTrending = (data) => {
 // 	return data

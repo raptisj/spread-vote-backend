@@ -11,6 +11,6 @@ router.post('/podcasts/:podId/guests/create/fetch', requireAuth, guestController
 router.patch('/podcasts/:podId/guests/create/fetch', requireAuth, guestController.fetch_update_twitter_data);
 router.patch('/guests/up-vote/:id', requireAuth, guestController.upVote_guest);
 router.patch('/guests/un-vote/:id', requireAuth, guestController.unVote_guest);
-router.patch('/podcasts/:podId/vote-category', requireAuth, guestController.vote_category);
+// router.patch('/podcasts/:podId/vote-category', requireAuth, guestController.vote_category);
 
 module.exports = router;
