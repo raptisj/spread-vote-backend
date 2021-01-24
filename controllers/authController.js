@@ -1,4 +1,5 @@
 const User = require('../models/User');
+const Guest = require('../models/Guest');
 const jwt = require('jsonwebtoken');
 
 // handle errors
@@ -67,7 +68,7 @@ module.exports.login = async (req, res) => {
     const user = await User.login(email, password);
     const token = createToken(user._id);
 
-    res.status(200).json({ token });
+    res.status(200).json({ token, id: user._id });
   } catch (err) {
     const errors = handleErrors(err);
     res.status(400).json({ errors });
@@ -87,6 +88,16 @@ module.exports.get_user = async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select('-password');
     res.status(200).json(user);
+  } catch (err) {
+    res.status(400).json({ message: err });
+  }
+};
+
+module.exports.get_user_guests = async (req, res) => {
+  try {
+    const userGuest = await Guest.find( { votes: req.params.userId } )
+
+    res.status(200).json(userGuest);
   } catch (err) {
     res.status(400).json({ message: err });
   }

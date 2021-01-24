@@ -32,7 +32,7 @@ app.use(function (req, res, next) {
 const dbURI = process.env.DB_CONNECTION;
 mongoose
 	.connect(dbURI, { useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true })
-	.then((result) => app.listen(4000, () => console.log('Server up and running')))
+	.then(() => app.listen(4000, () => console.log('Server up and running')))
 	.catch((err) => console.log(err));
 
 // routes

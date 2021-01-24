@@ -1,4 +1,5 @@
 const Podcast = require('../models/Podcast');
+const Guest = require('../models/Guest');
 
 module.exports.all_podcasts = async (req, res) => {
 	try {
@@ -13,12 +14,18 @@ module.exports.single_podcast = async (req, res) => {
 	try {
 		const podcast = await Podcast.findById(req.params.id);
 
-		res.json(podcast);
+		const podcastGuests = await Guest.find({
+			'_id': { $in: [podcast.guests]}
+		});
+
+		res.json({podcast, podcastGuests});
 	} catch (err) {
 		res.status(400).json({ message: err });
 	}
 };
 
+
+// only for future admin  users
 module.exports.create_podcast = async (req, res) => {
 	const podcast = new Podcast({
 		name: req.body.name,
