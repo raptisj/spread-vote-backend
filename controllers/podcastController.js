@@ -29,14 +29,15 @@ module.exports.single_podcast = async (req, res) => {
 module.exports.create_podcast = async (req, res) => {
 	const podcast = new Podcast({
 		name: req.body.name,
-		about: req.body.about,
+		bio: req.body.about,
+		userId: req.body.userId,
 		guests: req.body.guests,
-		category: req.body.category
+		tags: req.body.tags
 	});
 
 	try {
-		const savedPodcasts = await podcast.save();
-		res.json(savedPodcasts);
+		const savedPodcast = await podcast.save();
+		res.json(savedPodcast);
 	} catch (err) {
 		res.status(400).json({ message: err });
 	}

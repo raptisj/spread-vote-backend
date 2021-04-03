@@ -48,13 +48,21 @@ const createToken = (id) => {
 
 // controller actions
 module.exports.signup = async (req, res) => {
-  const { email, password, firstName, lastName } = req.body;
+  const { email, password, name } = req.body;
+
+  const guestInitialData = {
+    name: `${firstName} ${lastName}`,
+  }
 
   try {
-    const user = await User.create({ email, password, firstName, lastName });
+    const user = await User.create({ email, password, name });
+    guestInitialData.userId = user._id;
+
+    const guest = new Guest(guestInitialData)
+    await guest.save();
     const token = createToken(user._id);
 
-    res.status(200).json({ token });
+    res.status(200).json({ token, id: user._id });
   } catch (err) {
     const errors = handleErrors(err);
     res.status(400).json({ errors });
@@ -93,30 +101,30 @@ module.exports.get_user = async (req, res) => {
   }
 };
 
-module.exports.get_user_guests = async (req, res) => {
+module.exports.get_user_profile = async (req, res) => {
   try {
-    const userGuest = await Guest.find( { votes: req.params.userId } )
+    const userProfile = await Guest.find({ votes: req.params.guestId });
 
-    res.status(200).json(userGuest);
+    res.status(200).json(userProfile);
   } catch (err) {
     res.status(400).json({ message: err });
   }
 };
 
-module.exports.update_user = async (req, res) => {
-  try {
-    await User.updateOne({ _id: req.user.id }, { $push: { guests: req.body } });
-    res.status(200).json(req.body);
-  } catch (err) {
-    res.status(400).json({ message: err });
-  }
-};
+// module.exports.update_user = async (req, res) => {
+//   try {
+//     await User.updateOne({ _id: req.user.id }, { $push: { guests: req.body } });
+//     res.status(200).json(req.body);
+//   } catch (err) {
+//     res.status(400).json({ message: err });
+//   }
+// };
 
-module.exports.remove_user_guest = async (req, res) => {
-  try {
-    await User.updateOne({ _id: req.user.id }, { $pull: { guests: { _id: req.body._id } } });
-    res.status(200).json(req.body);
-  } catch (err) {
-    res.status(400).json({ message: err });
-  }
-};
+// module.exports.remove_user_guest = async (req, res) => {
+//   try {
+//     await User.updateOne({ _id: req.user.id }, { $pull: { guests: { _id: req.body._id } } });
+//     res.status(200).json(req.body);
+//   } catch (err) {
+//     res.status(400).json({ message: err });
+//   }
+// };

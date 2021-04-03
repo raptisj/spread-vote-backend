@@ -2,6 +2,8 @@ const mongoose = require('mongoose');
 const { isEmail } = require('validator');
 const bcrypt = require('bcrypt');
 
+const imgSrc = 'https://img.favpng.com/22/13/24/disk-green-circle-png-favpng-3F6U9MeHGHMTjpQQa3uhewVhx.jpg';
+
 const userSchema = new mongoose.Schema({
   email: {
     type: String,
@@ -15,14 +17,34 @@ const userSchema = new mongoose.Schema({
     required: [true, 'Please enter a password'],
     minlength: [6, 'Minimum password length is 6 characters']
   },
-  firstName: {
+  name: {
     type: String,
-    required: [true, 'Please enter first name']
+    required: [true, 'Please enter name']
   },
-  lastName: {
+  avatar: {
     type: String,
-    required: [true, 'Please enter last name']
+    default: imgSrc
   },
+  guestId: {
+    type: String,
+		default: null
+  },
+  podcastId: {
+    type: String,
+		default: null
+  },
+  profileActive: {
+    type: Boolean,
+    default: false
+  },
+	podcastActive: {
+    type: Boolean,
+    default: false
+  },
+  social: {
+		type: Object,
+		default: { website: '', twitter: ''}
+	}
 });
 
 // fire a function before doc saved to db

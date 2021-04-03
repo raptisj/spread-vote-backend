@@ -8,8 +8,8 @@ router.post('/signup/', authController.signup);
 router.post('/login/', authController.login);
 router.post('/logout/', authController.logout);
 router.get('/user/', requireAuth, authController.get_user);
-router.get('/user/:userId', requireAuth, authController.get_user_guests);
-router.patch('/user/guest/add/', requireAuth, authController.update_user);
-router.patch('/user/guest/remove/', requireAuth, authController.remove_user_guest);
+router.get('/user/:guestId', requireAuth, authController.get_user_profile);
+// router.patch('/user/guest/add/', requireAuth, authController.update_user);
+// router.patch('/user/guest/remove/', requireAuth, authController.remove_user_guest);
 
 module.exports = router;
